@@ -11,6 +11,11 @@
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+  <!-- React 18 & Babel CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,6 +26,25 @@
             brand2: '#005792',
             brand3: '#00bbf0',
             brand4: '#fdb44b',
+            botanical: {
+              50: '#F6F8F5',
+              100: '#EBF1EB',
+              200: '#D6E2D7',
+              300: '#B6CCB9',
+              400: '#8FB194',
+              500: '#699371',
+              600: '#4A6B53', // 主品牌深綠
+              700: '#3D5844',
+              800: '#2D4A36', // 強調綠
+              900: '#1E3224'
+            },
+            ambercream: {
+              50: '#FAF9F5',
+              100: '#F3F0E6',
+              200: '#E6E0CE',
+              500: '#B89F6B',
+              600: '#997F4E'
+            }
           },
           fontFamily: {
             sans: ['"Chiron GoRound TC"', 'sans-serif'],
@@ -29,20 +53,69 @@
       }
     }
   </script>
+  <style>
+    /* Modal 動畫過渡 */
+    .modal-backdrop {
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+    }
+    .modal-backdrop.hidden-state {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .modal-backdrop.active-state {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .modal-panel {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    }
+    .hidden-state .modal-panel {
+      transform: scale(0.96) translateY(16px);
+      opacity: 0;
+    }
+    .active-state .modal-panel {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    /* 自定義捲軸 */
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background-color: #D6E2D7;
+      border-radius: 9999px;
+    }
+    /* 選取標籤的勾選動畫微互動 */
+    .pill-check input:checked + label {
+      background-color: #4A6B53;
+      color: #ffffff;
+      border-color: #4A6B53;
+      box-shadow: 0 2px 8px rgba(74, 107, 83, 0.25);
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans leading-relaxed">
 
   <header class="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm border-b border-slate-100">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i class="fa-solid fa-seedling text-brand3 text-xl"></i>
-        <span class="font-bold text-lg text-brand1 tracking-wide">Gwendolyn Yang</span>
+    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-seedling text-brand3 text-xl"></i>
+          <span class="font-bold text-lg text-brand1 tracking-wide">Gwendolyn Yang</span>
+        </div>
+        <!-- React 到訪人數即時掛載容器 -->
+        <div id="visitor-counter-root"></div>
       </div>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
         <a href="#about" class="hover:text-brand3 transition">關於我</a>
         <a href="#achievements" class="hover:text-brand3 transition">代表成就</a>
         <a href="#education" class="hover:text-brand3 transition">學歷與經歷</a>
-        <a href="#projects" class="hover:text-brand3 transition">創新與專利</a>
+        <a href="#consultation" class="hover:text-botanical-600 transition flex items-center gap-1.5 text-botanical-700 font-semibold"><i class="fa-solid fa-seedling text-botanical-500"></i>身心諮詢表</a>
         <a href="#contact" class="px-4 py-2 rounded-full bg-brand1 text-white hover:bg-brand2 transition">聯絡諮詢</a>
       </nav>
     </div>
@@ -66,11 +139,18 @@
           植物香氣 × AI × 情緒療癒 × 健康管理。<br>
           「讓植物讀懂情緒，讓 AI 找到屬於你的專屬香氣。」
         </p>
-        <div class="pt-2">
+        <div class="pt-2 flex flex-wrap gap-3">
           <a href="#contact" class="inline-flex items-center gap-2 bg-brand1 hover:bg-brand2 text-white font-medium px-6 py-3 rounded-xl shadow-md transition-all duration-300">
             <i class="fa-regular fa-paper-plane"></i>
             <span>與我聯絡</span>
           </a>
+          <button 
+            type="button" 
+            id="heroOpenModalBtn" 
+            class="group inline-flex items-center gap-2.5 px-6 py-3 bg-botanical-600 hover:bg-botanical-700 active:bg-botanical-800 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+            <i class="fa-solid fa-file-waveform text-botanical-200 group-hover:rotate-6 transition-transform"></i>
+            <span>填寫身心諮詢表</span>
+          </button>
         </div>
       </div>
 
@@ -340,6 +420,104 @@
       </div>
 
     </div>
+  <!-- 芳香閣 芳療個案身心諮詢專區 -->
+  <section id="consultation" class="max-w-7xl mx-auto px-6 py-16">
+    <div class="bg-gradient-to-br from-botanical-50 via-white to-ambercream-50 rounded-3xl p-8 lg:p-12 border border-botanical-200/80 shadow-sm relative overflow-hidden">
+      <!-- 背景幾何裝飾葉片 -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-botanical-100/50 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-10 -top-10 w-48 h-48 bg-ambercream-100/60 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="relative z-10">
+        <!-- 區塊頂部標籤與標題 -->
+        <div class="text-center max-w-3xl mx-auto mb-12">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-botanical-100 text-botanical-800 border border-botanical-300 mb-4 shadow-sm">
+            <span>🌿</span>
+            <span>芳香閣 身心植萃調理所 ｜ IFA 專業個案初診系統</span>
+          </div>
+          <h2 class="text-3xl lg:text-4xl font-serif font-bold text-stone-900 leading-tight">
+            傾聽身心訊號，調配專屬於您的植萃配方
+          </h2>
+          <p class="text-stone-600 text-sm sm:text-base mt-4 leading-relaxed max-w-2xl mx-auto">
+            芳香閣著重身心整體平衡與自然能量。諮詢前請協助我們了解您的作息、身心需求與禁忌病史，以確保安全與最佳調理效果。
+          </p>
+        </div>
+
+        <!-- 4 步驟流程卡片 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+          <div class="bg-white/80 backdrop-blur p-5 rounded-2xl border border-stone-200/80 shadow-sm hover:shadow-md transition">
+            <div class="w-10 h-10 rounded-xl bg-botanical-100 text-botanical-700 font-bold flex items-center justify-center text-sm mb-3">
+              01
+            </div>
+            <h3 class="font-bold text-stone-800 text-sm mb-1">基本資訊與生活型態</h3>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              記錄年齡、性別與日常工作型態（久坐、輪班、久站），作為安全稀釋濃度的科學基準。
+            </p>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur p-5 rounded-2xl border border-stone-200/80 shadow-sm hover:shadow-md transition">
+            <div class="w-10 h-10 rounded-xl bg-botanical-100 text-botanical-700 font-bold flex items-center justify-center text-sm mb-3">
+              02
+            </div>
+            <h3 class="font-bold text-stone-800 text-sm mb-1">身心主訴與需求評估</h3>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              針對睡眠困擾、焦慮壓力、肩頸肌肉緊繃或消化機能，確立專屬配方之調理核心。
+            </p>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur p-5 rounded-2xl border border-stone-200/80 shadow-sm hover:shadow-md transition">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-sm mb-3">
+              03
+            </div>
+            <h3 class="font-bold text-stone-800 text-sm mb-1">安全禁忌與病史防護</h3>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              嚴格篩檢懷孕週數、血壓、癲癇、肝腎與堅果過敏史，全面防範精油不良交互作用。
+            </p>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur p-5 rounded-2xl border border-stone-200/80 shadow-sm hover:shadow-md transition">
+            <div class="w-10 h-10 rounded-xl bg-ambercream-100 text-ambercream-600 font-bold flex items-center justify-center text-sm mb-3">
+              04
+            </div>
+            <h3 class="font-bold text-stone-800 text-sm mb-1">香氣偏好與知情同意</h3>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              探索木質、柑橘、花香或草本偏好並避開氣味雷區，以愉悅香氣啟動副交感神經修復。
+            </p>
+          </div>
+        </div>
+
+        <!-- 互動引導與觸發行動區 -->
+        <div class="bg-white/90 backdrop-blur rounded-2xl p-6 sm:p-8 border border-botanical-200 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-1 text-center md:text-left">
+            <div class="flex items-center justify-center md:justify-start gap-2 text-botanical-700 text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-botanical-500 animate-ping"></span>
+              <span>線上諮詢表系統就緒</span>
+            </div>
+            <h4 class="text-lg font-bold text-stone-800">準備好開啟您的植物療癒之旅了嗎？</h4>
+            <p class="text-xs text-stone-500">填寫約需 2-3 分鐘・所有個案資訊由芳香閣嚴格保密・24 小時內確認諮詢時間</p>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button 
+              type="button" 
+              id="openModalBtn" 
+              class="group inline-flex items-center gap-2.5 px-7 py-3.5 bg-botanical-600 hover:bg-botanical-700 active:bg-botanical-800 text-white font-medium text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-botanical-500 focus:ring-offset-2">
+              <svg class="w-5 h-5 text-botanical-200 group-hover:rotate-12 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>填寫芳香閣個案身心諮詢表</span>
+            </button>
+            <button 
+              type="button" 
+              id="sectionQuickTestBtn"
+              class="inline-flex items-center gap-1.5 px-4 py-3.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-xs rounded-xl transition"
+              title="快速開啟並帶入測試資料">
+              <span>🧪 填入測試資料預覽</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </section>
 
   <section id="contact" class="bg-brand1 text-white py-16">
@@ -350,7 +528,7 @@
           歡迎企業品牌洽談、場域體驗策展、演講邀約與專利IP授權合作。
         </p>
         <div class="pt-6 flex flex-wrap justify-center gap-4">
-          <a href="mailto:contact@flower4skin.com" class="bg-brand4 text-brand1 font-semibold px-6 py-3 rounded-xl hover:bg-yellow-400 transition">
+          <a href="mailto:pglotus68@gmail.com" class="bg-brand4 text-brand1 font-semibold px-6 py-3 rounded-xl hover:bg-yellow-400 transition">
             <i class="fa-solid fa-envelope mr-2"></i>來信洽談
           </a>
         </div>
@@ -360,6 +538,1097 @@
       </div>
     </div>
   </section>
+
+  <!-- React 即時到訪人數組件 -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    function VisitorCounter() {
+      /**
+       * 1. 請將下方的網址替換為您在 Google Apps Script 部署的 Web App URL
+       *    範例：https://script.google.com/macros/s/AKfycbx.../exec
+       * 2. 若尚未設定網址，將自動進入「示範/模擬模式」，方便本機預覽效果。
+       */
+      const GOOGLE_APPS_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL";
+
+      const [count, setCount] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [isBumping, setIsBumping] = useState(false);
+      const [isLive, setIsLive] = useState(false);
+      const prevCountRef = useRef(null);
+
+      // 向 Google Apps Script 發送請求
+      const requestCount = async (action = 'get') => {
+        // 未填入網址時的示範模式
+        if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) {
+          setLoading(false);
+          setIsLive(false);
+          setCount((prev) => {
+            const stored = Number(localStorage.getItem('gwen_cv_demo_counter')) || 0;
+            const updated = action === 'hit' ? stored + 1 : stored;
+            localStorage.setItem('gwen_cv_demo_counter', updated);
+            if (prev !== null && prev !== updated) {
+              triggerBump();
+            }
+            return updated;
+          });
+          return;
+        }
+
+        try {
+          // 加入 timestamp 避免瀏覽器快取 GET 請求
+          const endpoint = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&t=${Date.now()}`;
+          const res = await fetch(endpoint, { redirect: "follow" });
+          const data = await res.json();
+
+          if (data && typeof data.count === 'number') {
+            if (prevCountRef.current !== null && prevCountRef.current !== data.count) {
+              triggerBump();
+            }
+            prevCountRef.current = data.count;
+            setCount(data.count);
+            setIsLive(true);
+          }
+        } catch (error) {
+          console.warn("[VisitorCounter] 連線至 Google Sheet 失敗，切換為快取模式:", error);
+          setIsLive(false);
+          if (count === null) setCount(0);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const triggerBump = () => {
+        setIsBumping(true);
+        setTimeout(() => setIsBumping(false), 900);
+      };
+
+      useEffect(() => {
+        // 檢查此瀏覽工作階段是否已計次（避免重整頁面重複刷次數）
+        const hasCountedSession = sessionStorage.getItem('gwen_cv_counted');
+        if (!hasCountedSession) {
+          sessionStorage.setItem('gwen_cv_counted', 'true');
+          requestCount('hit'); // 首次進入：累加 +1
+        } else {
+          requestCount('get'); // 再次進入：只查詢
+        }
+
+        // 即時動態輪詢：每 10 秒向 Google Sheet 取得最新到訪人數
+        const intervalId = setInterval(() => {
+          requestCount('get');
+        }, 10000);
+
+        return () => clearInterval(intervalId);
+      }, []);
+
+      return (
+        <div 
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100/90 hover:bg-white border border-slate-200/90 hover:border-brand3/50 shadow-sm text-xs transition-all duration-300 select-none"
+          title={isLive ? "Google Sheet 雲端即時連線中 (每10秒動態同步)" : "示範模式 (請於 index.html 填入 Google Apps Script 網址)"}
+        >
+          {/* 即時連線綠色動態呼吸燈 */}
+          <span className="relative flex h-2 w-2">
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isLive ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+          </span>
+
+          <span className="font-medium text-slate-500 flex items-center gap-1.5">
+            <i className="fa-solid fa-users text-[11px] text-brand2"></i>
+            <span className="hidden sm:inline">到訪人數</span>
+          </span>
+
+          {/* 數字徽章（數值改變時具備彈跳發光動畫） */}
+          <span className={`font-mono font-bold tracking-tight px-1.5 py-0.5 rounded transition-all duration-300 ${
+            isBumping
+              ? 'bg-emerald-500 text-white scale-110 shadow-md ring-2 ring-emerald-300'
+              : 'text-brand1 bg-white border border-slate-200/70'
+          }`}>
+            {loading ? (
+              <i className="fa-solid fa-circle-notch fa-spin text-[10px] text-slate-400"></i>
+            ) : (
+              count !== null ? Number(count).toLocaleString() : '--'
+            )}
+          </span>
+
+          <span className={`text-[10px] font-semibold px-1 rounded ${
+            isLive ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50'
+          }`}>
+            {isLive ? 'LIVE' : 'DEMO'}
+          </span>
+        </div>
+      );
+    }
+
+    // 掛載至導覽列
+    const mountNode = document.getElementById('visitor-counter-root');
+    if (mountNode) {
+      const root = ReactDOM.createRoot(mountNode);
+      root.render(<VisitorCounter />);
+    }
+  </script>
+
+  <!-- Modal 彈窗本體 (包含 Backdrop 與固定卡片) -->
+  <div 
+    id="modalOverlay" 
+    class="modal-backdrop hidden-state fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/50 backdrop-blur-sm"
+    role="dialog" 
+    aria-modal="true" 
+    aria-labelledby="modalHeading"
+  >
+    <div 
+      id="modalContainer"
+      class="modal-panel relative w-full max-w-2xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-100 overflow-hidden"
+      onclick="event.stopPropagation()"
+    >
+      <!-- 頂部品牌漸層飾條 -->
+      <div class="h-1.5 w-full bg-gradient-to-r from-botanical-300 via-botanical-600 to-ambercream-500"></div>
+
+      <!-- Modal Header -->
+      <div class="px-6 pt-5 pb-4 border-b border-stone-100 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-lg bg-botanical-50 border border-botanical-200 flex items-center justify-center text-sm">
+            🌿
+          </div>
+          <div>
+            <h2 id="modalHeading" class="text-base sm:text-lg font-semibold text-stone-800">芳香閣 個案身心諮詢表</h2>
+            <p class="text-[11px] sm:text-xs text-stone-500">身心療癒諮詢與精油安全性專屬評估</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            id="fillTestDataBtn" 
+            type="button" 
+            class="text-xs px-2.5 py-1.5 rounded-lg bg-botanical-50 hover:bg-botanical-100 text-botanical-700 border border-botanical-200 transition font-medium flex items-center gap-1"
+            title="快速填入完整測試資料"
+          >
+            <span>🧪</span> 填入測試資料
+          </button>
+          <button 
+            id="closeModalBtn" 
+            type="button" 
+            class="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-2 rounded-lg transition-colors duration-150 focus:outline-none"
+            aria-label="關閉"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 步驟指示進度條 (Step Indicator) -->
+      <div class="px-6 py-3 bg-stone-50/70 border-b border-stone-100">
+        <div class="flex items-center justify-between text-xs font-medium">
+          <div class="step-indicator flex items-center gap-1.5 text-botanical-700 font-semibold" data-step="1">
+            <span class="step-badge w-5 h-5 rounded-full bg-botanical-600 text-white flex items-center justify-center text-[10px]">1</span>
+            <span class="hidden sm:inline">基本與作息</span>
+          </div>
+          <div class="h-[1px] flex-1 bg-stone-200 mx-2"></div>
+          <div class="step-indicator flex items-center gap-1.5 text-stone-400" data-step="2">
+            <span class="step-badge w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]">2</span>
+            <span class="hidden sm:inline">身心主訴</span>
+          </div>
+          <div class="h-[1px] flex-1 bg-stone-200 mx-2"></div>
+          <div class="step-indicator flex items-center gap-1.5 text-stone-400" data-step="3">
+            <span class="step-badge w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]">3</span>
+            <span class="hidden sm:inline">安全禁忌</span>
+          </div>
+          <div class="h-[1px] flex-1 bg-stone-200 mx-2"></div>
+          <div class="step-indicator flex items-center gap-1.5 text-stone-400" data-step="4">
+            <span class="step-badge w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]">4</span>
+            <span class="hidden sm:inline">香氣與同意</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 內容區域 (可捲動) -->
+      <div class="px-6 sm:px-8 py-5 overflow-y-auto custom-scroll flex-1">
+        
+        <!-- 表單本體 -->
+        <form id="ifaConsultForm" novalidate>
+          
+          <!-- ========== STEP 1: 基本與生活型態 ========== -->
+          <div id="step1" class="step-content space-y-5">
+            <div class="border-b border-stone-100 pb-2">
+              <h3 class="text-sm font-semibold text-botanical-800 uppercase tracking-wide">Step 1. 基本資訊與生活型態</h3>
+              <p class="text-xs text-stone-500">協助芳療師評估精油適當濃度及作息致敏/疲憊成因</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 姓名 -->
+              <div>
+                <label for="clientName" class="block text-xs font-medium text-stone-700 mb-1">
+                  姓名 / 稱呼 <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="clientName" 
+                  name="clientName" 
+                  value=""
+                  placeholder="請輸入您的姓名或稱呼" 
+                  class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+                >
+                <p class="err-msg hidden text-[11px] text-rose-500 mt-1">請填寫您的姓名</p>
+              </div>
+
+              <!-- 性別 -->
+              <div>
+                <label class="block text-xs font-medium text-stone-700 mb-1">
+                  生理性別 <span class="text-rose-500">*</span>
+                </label>
+                <div class="grid grid-cols-3 gap-2">
+                  <label class="cursor-pointer flex items-center justify-center py-2.5 px-3 border border-stone-200 rounded-lg text-xs font-medium text-stone-700 bg-stone-50 hover:bg-stone-100 has-[:checked]:bg-botanical-50 has-[:checked]:border-botanical-600 has-[:checked]:text-botanical-800 transition">
+                    <input type="radio" name="gender" value="female" class="hidden">
+                    <span>女性</span>
+                  </label>
+                  <label class="cursor-pointer flex items-center justify-center py-2.5 px-3 border border-stone-200 rounded-lg text-xs font-medium text-stone-700 bg-stone-50 hover:bg-stone-100 has-[:checked]:bg-botanical-50 has-[:checked]:border-botanical-600 has-[:checked]:text-botanical-800 transition">
+                    <input type="radio" name="gender" value="male" class="hidden">
+                    <span>男性</span>
+                  </label>
+                  <label class="cursor-pointer flex items-center justify-center py-2.5 px-3 border border-stone-200 rounded-lg text-xs font-medium text-stone-700 bg-stone-50 hover:bg-stone-100 has-[:checked]:bg-botanical-50 has-[:checked]:border-botanical-600 has-[:checked]:text-botanical-800 transition">
+                    <input type="radio" name="gender" value="other" class="hidden">
+                    <span>其他/保密</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 年齡區間 -->
+              <div>
+                <label for="clientAge" class="block text-xs font-medium text-stone-700 mb-1">
+                  年齡區間 <span class="text-rose-500">*</span>
+                  <span class="text-[10px] text-stone-400 font-normal">(涉及精油稀釋濃度依據)</span>
+                </label>
+                <select 
+                  id="clientAge" 
+                  name="clientAge" 
+                  class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+                >
+                  <option value="">請選擇年齡區間</option>
+                  <option value="under18">18 歲以下 (需家長知情)</option>
+                  <option value="19-30">19 - 30 歲</option>
+                  <option value="31-50">31 - 50 歲</option>
+                  <option value="51-65">51 - 65 歲</option>
+                  <option value="above65">65 歲以上 (樂齡溫和劑量)</option>
+                </select>
+                <p class="err-msg hidden text-[11px] text-rose-500 mt-1">請選擇您的年齡區間</p>
+              </div>
+
+              <!-- 聯絡電話 -->
+              <div>
+                <label for="clientPhone" class="block text-xs font-medium text-stone-700 mb-1">
+                  聯絡電話 / 手機 <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                  type="tel" 
+                  id="clientPhone" 
+                  name="clientPhone" 
+                  value=""
+                  placeholder="例如：0912-345-678" 
+                  class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+                >
+                <p class="err-msg hidden text-[11px] text-rose-500 mt-1">請輸入有效電話</p>
+              </div>
+            </div>
+
+            <!-- 電子信箱 -->
+            <div>
+              <label for="clientEmail" class="block text-xs font-medium text-stone-700 mb-1">
+                電子信箱 (發送諮詢確認與配方紀錄) <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="email" 
+                id="clientEmail" 
+                name="clientEmail" 
+                value=""
+                placeholder="例如：name@example.com" 
+                class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+              >
+              <p class="err-msg hidden text-[11px] text-rose-500 mt-1">請輸入有效的 Email 地址</p>
+            </div>
+
+            <!-- 職業型態與日常作息 -->
+            <div>
+              <label class="block text-xs font-medium text-stone-700 mb-2">
+                職業生活型態 (複選)
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div class="pill-check">
+                  <input type="checkbox" id="life_sedentary" name="lifestyle" value="長時間久坐辦公" class="hidden">
+                  <label for="life_sedentary" class="block text-center py-2 px-2 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    久坐電腦族
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="life_shift" name="lifestyle" value="輪班或高壓工作" class="hidden">
+                  <label for="life_shift" class="block text-center py-2 px-2 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    高壓 / 輪班
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="life_standing" name="lifestyle" value="久站或勞動型態" class="hidden">
+                  <label for="life_standing" class="block text-center py-2 px-2 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    長時間久站
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="life_senior" name="lifestyle" value="退休或樂齡生活" class="hidden">
+                  <label for="life_senior" class="block text-center py-2 px-2 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    樂齡悠活
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== STEP 2: 身心訴求與主訴 ========== -->
+          <div id="step2" class="step-content hidden space-y-5">
+            <div class="border-b border-stone-100 pb-2">
+              <h3 class="text-sm font-semibold text-botanical-800 uppercase tracking-wide">Step 2. 本次主要身心諮詢訴求</h3>
+              <p class="text-xs text-stone-500">協助調配前調、中調、後調與情緒放鬆協同成分</p>
+            </div>
+
+            <!-- 訴求標籤選擇 (多選) -->
+            <div>
+              <label class="block text-xs font-medium text-stone-700 mb-2">
+                您目前最想改善或調理的方向？(可複選 1~3 項) <span class="text-rose-500">*</span>
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="concernPillsGroup">
+                <div class="pill-check">
+                  <input type="checkbox" id="c_sleep" name="concerns" value="睡眠困擾/淺眠多夢" class="hidden">
+                  <label for="c_sleep" class="block text-center py-2.5 px-3 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🌙 睡眠障礙 / 淺眠
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="c_anxiety" name="concerns" value="焦慮緊繃/思緒過載" class="hidden">
+                  <label for="c_anxiety" class="block text-center py-2.5 px-3 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🌧 焦慮壓力 / 緊繃
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="c_muscle" name="concerns" value="肩頸肌肉僵硬" class="hidden">
+                  <label for="c_muscle" class="block text-center py-2.5 px-3 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    💆 肩頸僵硬 / 酸痛
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="c_breath" name="concerns" value="呼吸道敏感/胸悶" class="hidden">
+                  <label for="c_breath" class="block text-center py-2.5 px-3 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🍃 呼吸敏感 / 胸悶
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="c_digest" name="concerns" value="消化不良/脹氣" class="hidden">
+                  <label for="c_digest" class="block text-center py-2.5 px-3 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🍵 腸胃消化 / 脹氣
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="c_female" name="concerns" value="生理週期調理/更年期" class="hidden">
+                  <label for="c_female" class="block text-center py-2.5 px-3 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🌸 婦科生理 / 更年期
+                  </label>
+                </div>
+              </div>
+              <p id="concernErr" class="hidden text-[11px] text-rose-500 mt-2">請至少勾選一項身心調理訴求</p>
+            </div>
+
+            <!-- 詳細狀況描述 -->
+            <div>
+              <label for="symptomDetail" class="block text-xs font-medium text-stone-700 mb-1">
+                目前症狀細節或感受描述 (選填)
+              </label>
+              <textarea 
+                id="symptomDetail" 
+                name="symptomDetail" 
+                rows="4" 
+                placeholder="例如：最近連續兩週入睡困難，半夜容易驚醒；或下午工作時常感到後頸緊繃、伴隨輕微偏頭痛..." 
+                class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition resize-none custom-scroll"
+              ></textarea>
+              <span class="text-[11px] text-stone-400">描述持續時間、發生時機或情緒起伏，有助於更精準的芳療個案評估。</span>
+            </div>
+          </div>
+
+          <!-- ========== STEP 3: 安全禁忌與病史 (芳香閣核心安全標準) ========== -->
+          <div id="step3" class="step-content hidden space-y-5">
+            <div class="border-b border-stone-100 pb-2 flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-rose-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <span class="text-rose-500">⚠</span> Step 3. 安全禁忌評估 (芳香閣 安全防護標準)
+                </h3>
+                <p class="text-xs text-stone-500">此區攸關精油用油安全篩選（如癲癇避用單萜酮、高血壓避用高刺激精油等）</p>
+              </div>
+            </div>
+
+            <!-- 懷孕與哺乳狀態 -->
+            <div class="bg-amber-50/60 p-3.5 rounded-xl border border-amber-200/70">
+              <label class="block text-xs font-semibold text-stone-800 mb-2">
+                生理特殊狀態（懷孕 / 哺乳） <span class="text-rose-500">*</span>
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50">
+                  <input type="radio" name="pregnancyStatus" value="none" class="text-botanical-600 focus:ring-botanical-500" checked>
+                  <span>無懷孕 / 無哺乳</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50">
+                  <input type="radio" name="pregnancyStatus" value="pregnant" class="text-botanical-600 focus:ring-botanical-500">
+                  <span>目前懷孕中</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50">
+                  <input type="radio" name="pregnancyStatus" value="nursing" class="text-botanical-600 focus:ring-botanical-500">
+                  <span>產後哺乳中</span>
+                </label>
+              </div>
+              <div id="pregnancyWeeksWrap" class="hidden mt-3 pt-2 border-t border-amber-200/50">
+                <label for="pregnancyWeeks" class="block text-[11px] text-stone-700 mb-1">請填寫目前懷孕週數（前三個月孕期有嚴格用油限制）：</label>
+                <input type="number" id="pregnancyWeeks" name="pregnancyWeeks" min="1" max="42" placeholder="例如：16 週" class="w-full sm:w-48 px-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs">
+              </div>
+            </div>
+
+            <!-- 慢性病史與身體狀態勾選清單 -->
+            <div>
+              <label class="block text-xs font-semibold text-stone-800 mb-2">
+                是否有以下健康狀況或病史？(無者可跳過)
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center gap-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200/80 cursor-pointer hover:bg-stone-100">
+                  <input type="checkbox" name="healthConditions" value="高血壓" class="rounded text-botanical-600 focus:ring-botanical-500">
+                  <span>高血壓 (需避免刺激性升高精油)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200/80 cursor-pointer hover:bg-stone-100">
+                  <input type="checkbox" name="healthConditions" value="低血壓" class="rounded text-botanical-600 focus:ring-botanical-500">
+                  <span>低血壓 (需留意深度放鬆過低)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200/80 cursor-pointer hover:bg-stone-100">
+                  <input type="checkbox" name="healthConditions" value="癲癇病史" class="rounded text-botanical-600 focus:ring-botanical-500">
+                  <span>癲癇病史 (嚴格禁用單萜酮類)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200/80 cursor-pointer hover:bg-stone-100">
+                  <input type="checkbox" name="healthConditions" value="氣喘/呼吸道敏感" class="rounded text-botanical-600 focus:ring-botanical-500">
+                  <span>氣喘 (避免直接高濃度蒸氣吸入)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200/80 cursor-pointer hover:bg-stone-100">
+                  <input type="checkbox" name="healthConditions" value="雌激素病史" class="rounded text-botanical-600 focus:ring-botanical-500">
+                  <span>子宮肌瘤/囊腫 (避免類雌激素精油)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 bg-stone-50 rounded-lg border border-stone-200/80 cursor-pointer hover:bg-stone-100">
+                  <input type="checkbox" name="healthConditions" value="肝腎功能異常" class="rounded text-botanical-600 focus:ring-botanical-500">
+                  <span>肝/腎機能問題 (嚴控代謝負擔)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 過敏史 (特別是堅果類基底油) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="allergyDetails" class="block text-xs font-semibold text-stone-800 mb-1">
+                  過敏史 (特別是堅果油、花粉、化妝品)
+                </label>
+                <input 
+                  type="text" 
+                  id="allergyDetails" 
+                  name="allergyDetails" 
+                  value=""
+                  placeholder="無過敏請填「無」，若對杏仁/堅果過敏請務必填寫" 
+                  class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+                >
+              </div>
+              <div>
+                <label for="medicationDetails" class="block text-xs font-semibold text-stone-800 mb-1">
+                  目前是否正在服用常規藥物？
+                </label>
+                <input 
+                  type="text" 
+                  id="medicationDetails" 
+                  name="medicationDetails" 
+                  value=""
+                  placeholder="例如：抗凝血劑、降血壓藥、賀爾蒙補充劑等（無則填「無」）" 
+                  class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== STEP 4: 香氣偏好與知情同意 ========== -->
+          <div id="step4" class="step-content hidden space-y-5">
+            <div class="border-b border-stone-100 pb-2">
+              <h3 class="text-sm font-semibold text-botanical-800 uppercase tracking-wide">Step 4. 香氣偏好與知情同意</h3>
+              <p class="text-xs text-stone-500">愉悅的嗅覺接受度是啟動副交感神經放鬆的關鍵因子</p>
+            </div>
+
+            <!-- 香氣調性偏好 -->
+            <div>
+              <label class="block text-xs font-medium text-stone-700 mb-2">
+                平時偏好的香氣調性 (可複選)
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div class="pill-check">
+                  <input type="checkbox" id="scent_woody" name="scent_fav" value="木質調 (如雪松、檜木、乳香)" class="hidden">
+                  <label for="scent_woody" class="block text-center py-2 px-2.5 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🌲 沉穩木質調
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="scent_citrus" name="scent_fav" value="柑橘調 (如甜橙、佛手柑、葡萄柚)" class="hidden">
+                  <label for="scent_citrus" class="block text-center py-2 px-2.5 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🍊 清新柑橘調
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="scent_floral" name="scent_fav" value="花香調 (如真正薰衣草、天竺葵、玫瑰)" class="hidden">
+                  <label for="scent_floral" class="block text-center py-2 px-2.5 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    💐 柔美花香調
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="scent_herbal" name="scent_fav" value="草本調 (如迷迭香、羅勒、歐薄荷)" class="hidden">
+                  <label for="scent_herbal" class="block text-center py-2 px-2.5 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🌱 沁涼草本調
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="scent_earth" name="scent_fav" value="樹脂與泥土調 (如安息香、廣藿香、岩蘭草)" class="hidden">
+                  <label for="scent_earth" class="block text-center py-2 px-2.5 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    ⛰ 樹脂厚重土香
+                  </label>
+                </div>
+                <div class="pill-check">
+                  <input type="checkbox" id="scent_warm" name="scent_fav" value="暖香料調 (如黑胡椒、肉桂)" class="hidden">
+                  <label for="scent_warm" class="block text-center py-2 px-2.5 text-xs border border-stone-200 rounded-lg cursor-pointer bg-stone-50 hover:bg-stone-100 text-stone-700 transition">
+                    🪵 溫暖辛香調
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 氣味雷區 -->
+            <div>
+              <label for="scentDislikes" class="block text-xs font-medium text-stone-700 mb-1">
+                聞到容易感到頭暈、噁心或排斥的氣味？
+              </label>
+              <input 
+                type="text" 
+                id="scentDislikes" 
+                name="scentDislikes" 
+                value=""
+                placeholder="例如：極度討厭茶樹、不喜歡濃烈甜香、對尤加利刺鼻味敏感...（無則可免填）" 
+                class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-botanical-500/30 focus:border-botanical-600 transition"
+              >
+            </div>
+
+            <!-- 芳香閣知情同意書規範條款 -->
+            <div class="bg-stone-50 border border-stone-200 rounded-xl p-4 text-stone-600 text-xs leading-relaxed space-y-2">
+              <h4 class="font-semibold text-stone-800 text-[13px]">芳香閣 知情同意聲明 (Informed Consent)</h4>
+              <p class="text-stone-500 text-[11px]">
+                1. 本人知悉芳香療法為促進身心平衡與支持自我療癒的<strong>整體輔助療法（Complementary Therapy）</strong>，非用作診斷、治療特定重大疾病或替代正式醫師醫療處方。<br>
+                2. 本人確認上述所填寫之病史、懷孕週數與用藥狀況皆屬實。若諮詢期間身體有突發狀況，將主動告知芳香閣芳療師。<br>
+                3. 所有諮詢內容與個案紀錄均嚴守芳香閣隱私保密規範，未經本人同意絕不向第三方透露。
+              </p>
+              <label class="flex items-start gap-2.5 pt-2 cursor-pointer text-stone-800 font-medium select-none">
+                <input type="checkbox" id="consentCheck" name="consentCheck" class="mt-0.5 w-4 h-4 rounded text-botanical-600 border-stone-300 focus:ring-botanical-500">
+                <span>我已閱讀並完全理解上述說明，同意由芳香閣芳療師依此進行個案身心諮詢與配方調研。<span class="text-rose-500">*</span></span>
+              </label>
+              <p id="consentErr" class="hidden text-[11px] text-rose-500">請閱讀並勾選知情同意宣告方可送出</p>
+            </div>
+          </div>
+        </form>
+
+        <!-- 成功回饋視窗 (預設隱藏) -->
+        <div id="successPanel" class="hidden py-8 px-2 flex flex-col items-center text-center">
+          <div class="w-16 h-16 bg-botanical-100 text-botanical-700 rounded-full flex items-center justify-center mb-4 ring-8 ring-botanical-50">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-botanical-700 tracking-wider uppercase mb-1">Appointment Request Confirmed</span>
+          <h3 class="text-xl font-serif font-semibold text-stone-900 mb-2">芳香閣 個案資料已送出</h3>
+          <p class="text-xs sm:text-sm text-stone-600 max-w-sm mb-6 leading-relaxed">
+            感謝您耐心填寫。芳香閣芳療師將進行個案安全評估與前置調香規劃，並於 24 小時內與您確認專屬諮詢時間。
+          </p>
+
+          <!-- 摘要小卡 -->
+          <div id="summaryCard" class="w-full max-w-md bg-stone-50 border border-stone-200 rounded-xl p-4 mb-6 text-left text-xs space-y-1.5 text-stone-700">
+            <div class="font-medium text-stone-900 border-b border-stone-200/80 pb-1.5 mb-2 flex justify-between items-center">
+              <span>芳香閣 預約個案簡要記錄</span>
+              <span class="text-[10px] text-stone-400 font-mono">STATUS: PENDING REVIEW</span>
+            </div>
+            <div><span class="text-stone-400">個案稱呼：</span><span id="sumName" class="font-medium"></span></div>
+            <div><span class="text-stone-400">主要訴求：</span><span id="sumConcerns" class="font-medium"></span></div>
+            <div><span class="text-stone-400">禁忌安全審核：</span><span id="sumSafety" class="text-botanical-700 font-medium">已通過芳香閣初步安全評估</span></div>
+          </div>
+
+          <button 
+            type="button" 
+            id="closeSuccessBtn"
+            class="px-6 py-2.5 bg-stone-800 hover:bg-stone-900 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors shadow-sm"
+          >
+            完成並關閉視窗
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Footer (步進導航控制區) -->
+      <div id="modalFooterNav" class="px-6 py-3.5 bg-stone-50/80 border-t border-stone-100 flex items-center justify-between">
+        <button 
+          type="button" 
+          id="prevStepBtn"
+          class="invisible px-4 py-2 text-stone-600 hover:text-stone-900 text-xs sm:text-sm font-medium rounded-lg hover:bg-stone-200/60 transition-colors flex items-center gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          上一步
+        </button>
+
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-stone-400 font-medium hidden sm:inline" id="stepCounterText">步驟 1 / 4</span>
+          <button 
+            type="button" 
+            id="nextStepBtn"
+            class="px-5 py-2.5 bg-botanical-600 hover:bg-botanical-700 active:bg-botanical-800 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2"
+          >
+            <span id="btnText">下一步</span>
+            <svg id="btnIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span id="btnSpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 芳香閣 芳療個案諮詢表互動邏輯 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      /**
+       * 芳香閣 身心諮詢表 Google Sheet 雲端儲存網址 (Google Apps Script Web App)
+       * 完成 Google Apps Script 部署後，請將取得的 Web 應用程式網址填入下方引號中：
+       * 例如："https://script.google.com/macros/s/AKfycbx.../exec"
+       */
+      const GOOGLE_SHEET_CONSULT_URL = "https://script.google.com/macros/s/AKfycbxGSO3Q2OUAsyldWwUhTTlIUyI0pdqxtkHDRKT6OVJ3yK84JX2T9GHz_PL2acJCH0FJLA/exec";
+
+      let currentStep = 1;
+      const totalSteps = 4;
+
+      // DOM 元素引用
+      const openModalBtn = document.getElementById('openModalBtn');
+      const heroOpenModalBtn = document.getElementById('heroOpenModalBtn');
+      const sectionQuickTestBtn = document.getElementById('sectionQuickTestBtn');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const fillTestDataBtn = document.getElementById('fillTestDataBtn');
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContainer = document.getElementById('modalContainer');
+      const ifaForm = document.getElementById('ifaConsultForm');
+      const modalFooterNav = document.getElementById('modalFooterNav');
+      const successPanel = document.getElementById('successPanel');
+      const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+
+      // 導覽按鈕
+      const prevStepBtn = document.getElementById('prevStepBtn');
+      const nextStepBtn = document.getElementById('nextStepBtn');
+      const btnText = document.getElementById('btnText');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const stepCounterText = document.getElementById('stepCounterText');
+
+      // 欄位引用 (Step 1)
+      const clientName = document.getElementById('clientName');
+      const clientAge = document.getElementById('clientAge');
+      const clientPhone = document.getElementById('clientPhone');
+      const clientEmail = document.getElementById('clientEmail');
+
+      // 欄位引用 (Step 3 懷孕條件連動)
+      const pregnancyRadios = document.querySelectorAll('input[name="pregnancyStatus"]');
+      const pregnancyWeeksWrap = document.getElementById('pregnancyWeeksWrap');
+
+      // 欄位引用 (Step 4 同意書)
+      const consentCheck = document.getElementById('consentCheck');
+      const consentErr = document.getElementById('consentErr');
+
+      // 條件邏輯：若勾選「懷孕中」則顯示懷孕週數欄位
+      pregnancyRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          if (e.target.value === 'pregnant') {
+            pregnancyWeeksWrap.classList.remove('hidden');
+          } else {
+            pregnancyWeeksWrap.classList.add('hidden');
+          }
+        });
+      });
+
+      // 開啟彈窗
+      function openModal() {
+        modalOverlay.classList.remove('hidden-state');
+        modalOverlay.classList.add('active-state');
+        document.body.style.overflow = 'hidden';
+        goToStep(1);
+      }
+
+      // 關閉彈窗
+      function closeModal() {
+        modalOverlay.classList.remove('active-state');
+        modalOverlay.classList.add('hidden-state');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+          resetForm();
+        }, 300);
+      }
+
+      // 重置表單
+      function resetForm() {
+        ifaForm.reset();
+        pregnancyWeeksWrap.classList.add('hidden');
+        currentStep = 1;
+        ifaForm.classList.remove('hidden');
+        successPanel.classList.add('hidden');
+        modalFooterNav.classList.remove('hidden');
+        clearAllErrors();
+      }
+
+      // 錯誤標註輔助
+      function showFieldError(input, message) {
+        const parent = input.closest('div');
+        const errP = parent.querySelector('.err-msg');
+        if (errP) {
+          if (message) errP.textContent = message;
+          errP.classList.remove('hidden');
+        }
+        input.classList.add('border-rose-400', 'bg-rose-50/20');
+      }
+
+      function clearFieldError(input) {
+        const parent = input.closest('div');
+        const errP = parent.querySelector('.err-msg');
+        if (errP) errP.classList.add('hidden');
+        input.classList.remove('border-rose-400', 'bg-rose-50/20');
+      }
+
+      function clearAllErrors() {
+        document.querySelectorAll('.err-msg').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+          el.classList.remove('border-rose-400', 'bg-rose-50/20');
+        });
+        const cErr = document.getElementById('concernErr');
+        if (cErr) cErr.classList.add('hidden');
+        if (consentErr) consentErr.classList.add('hidden');
+      }
+
+      // 電子信箱格式校驗
+      function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      // 各步驟驗證
+      function validateCurrentStep() {
+        let valid = true;
+
+        if (currentStep === 1) {
+          if (!clientName.value.trim()) {
+            showFieldError(clientName, '請輸入個案姓名');
+            valid = false;
+          }
+          if (!clientAge.value) {
+            showFieldError(clientAge, '請選擇年齡區間');
+            valid = false;
+          }
+          if (!clientPhone.value.trim() || clientPhone.value.trim().length < 8) {
+            showFieldError(clientPhone, '請輸入有效聯絡電話');
+            valid = false;
+          }
+          if (!clientEmail.value.trim() || !isValidEmail(clientEmail.value.trim())) {
+            showFieldError(clientEmail, '請輸入有效 Email 信箱');
+            valid = false;
+          }
+        } else if (currentStep === 2) {
+          const checkedConcerns = document.querySelectorAll('input[name="concerns"]:checked');
+          const concernErr = document.getElementById('concernErr');
+          if (checkedConcerns.length === 0) {
+            concernErr.classList.remove('hidden');
+            valid = false;
+          } else {
+            concernErr.classList.add('hidden');
+          }
+        } else if (currentStep === 3) {
+          valid = true;
+        } else if (currentStep === 4) {
+          if (!consentCheck.checked) {
+            consentErr.classList.remove('hidden');
+            valid = false;
+          } else {
+            consentErr.classList.add('hidden');
+          }
+        }
+
+        return valid;
+      }
+
+      // 步驟切換畫面渲染
+      function goToStep(stepNumber) {
+        document.querySelectorAll('.step-content').forEach(panel => panel.classList.add('hidden'));
+        const targetPanel = document.getElementById(`step${stepNumber}`);
+        if (targetPanel) targetPanel.classList.remove('hidden');
+
+        currentStep = stepNumber;
+        stepCounterText.textContent = `步驟 ${currentStep} / ${totalSteps}`;
+
+        // 更新頂部指示標籤樣式
+        document.querySelectorAll('.step-indicator').forEach(indicator => {
+          const step = parseInt(indicator.getAttribute('data-step'), 10);
+          const badge = indicator.querySelector('.step-badge');
+          
+          if (step < currentStep) {
+            indicator.className = 'step-indicator flex items-center gap-1.5 text-botanical-700 font-semibold cursor-pointer';
+            badge.className = 'step-badge w-5 h-5 rounded-full bg-botanical-100 text-botanical-700 border border-botanical-400 flex items-center justify-center text-[10px] font-bold';
+            badge.innerHTML = '✓';
+          } else if (step === currentStep) {
+            indicator.className = 'step-indicator flex items-center gap-1.5 text-botanical-800 font-semibold';
+            badge.className = 'step-badge w-5 h-5 rounded-full bg-botanical-600 text-white flex items-center justify-center text-[10px]';
+            badge.textContent = step;
+          } else {
+            indicator.className = 'step-indicator flex items-center gap-1.5 text-stone-400';
+            badge.className = 'step-badge w-5 h-5 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-[10px]';
+            badge.textContent = step;
+          }
+        });
+
+        // 上一步按鈕顯示與否
+        if (currentStep === 1) {
+          prevStepBtn.classList.add('invisible');
+        } else {
+          prevStepBtn.classList.remove('invisible');
+        }
+
+        // 下一步 / 送出按鈕文案變更
+        if (currentStep === totalSteps) {
+          btnText.textContent = '確認送出諮詢表';
+          btnIcon.classList.add('hidden');
+        } else {
+          btnText.textContent = '下一步';
+          btnIcon.classList.remove('hidden');
+        }
+
+        // 捲動回頂部
+        const scrollContainer = modalContainer.querySelector('.overflow-y-auto');
+        if (scrollContainer) scrollContainer.scrollTop = 0;
+      }
+
+      // 即時清除錯誤監聽
+      [clientName, clientAge, clientPhone, clientEmail].forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', () => clearFieldError(input));
+        input.addEventListener('change', () => clearFieldError(input));
+      });
+      document.querySelectorAll('input[name="concerns"]').forEach(c => {
+        c.addEventListener('change', () => {
+          const cErr = document.getElementById('concernErr');
+          if (cErr) cErr.classList.add('hidden');
+        });
+      });
+      if (consentCheck) {
+        consentCheck.addEventListener('change', () => {
+          if (consentCheck.checked && consentErr) consentErr.classList.add('hidden');
+        });
+      }
+
+      // 點擊下一步 / 送出
+      if (nextStepBtn) {
+        nextStepBtn.addEventListener('click', () => {
+          if (!validateCurrentStep()) return;
+
+          if (currentStep < totalSteps) {
+            goToStep(currentStep + 1);
+          } else {
+            submitForm();
+          }
+        });
+      }
+
+      // 點擊上一步
+      if (prevStepBtn) {
+        prevStepBtn.addEventListener('click', () => {
+          if (currentStep > 1) {
+            goToStep(currentStep - 1);
+          }
+        });
+      }
+
+      // 頂部 Indicator 可直接切換回前面的步驟
+      document.querySelectorAll('.step-indicator').forEach(ind => {
+        ind.addEventListener('click', () => {
+          const step = parseInt(ind.getAttribute('data-step'), 10);
+          if (step < currentStep) {
+            goToStep(step);
+          }
+        });
+      });
+
+      // 送出處理：將資料發送至 Google Sheet
+      async function submitForm() {
+        nextStepBtn.disabled = true;
+        prevStepBtn.disabled = true;
+        btnText.textContent = '評估資料送出中...';
+        btnIcon.classList.add('hidden');
+        btnSpinner.classList.remove('hidden');
+
+        // 整理生理性別文字
+        const checkedGender = document.querySelector('input[name="gender"]:checked');
+        const genderText = checkedGender ? (checkedGender.value === 'female' ? '女性' : checkedGender.value === 'male' ? '男性' : '其他/保密') : '未註明';
+
+        // 整理懷孕狀態文字
+        const checkedPreg = document.querySelector('input[name="pregnancyStatus"]:checked');
+        const pregText = checkedPreg ? (checkedPreg.value === 'none' ? '無懷孕/無哺乳' : checkedPreg.value === 'pregnant' ? '目前懷孕中' : '產後哺乳中') : '無特別註記';
+
+        // 整理主訴摘要
+        const checkedConcerns = Array.from(document.querySelectorAll('input[name="concerns"]:checked'))
+          .map(el => el.value.split('/')[0].replace(/^[^\s]+\s*/, ''))
+          .join('、') || '身心平衡放鬆';
+
+        // 封裝發送至 Google Sheet 的 Payload 資料物件
+        const payload = {
+          action: 'submitConsultation',
+          timestamp: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false }),
+          clientName: clientName.value.trim(),
+          gender: genderText,
+          clientAge: clientAge.options[clientAge.selectedIndex]?.text || clientAge.value,
+          clientPhone: clientPhone.value.trim(),
+          clientEmail: clientEmail.value.trim(),
+          lifestyle: Array.from(document.querySelectorAll('input[name="lifestyle"]:checked')).map(el => el.value).join('、') || '無特別標註',
+          concerns: checkedConcerns,
+          symptomDetail: (document.getElementById('symptomDetail')?.value || '').trim() || '無特別描述',
+          pregnancyStatus: pregText,
+          pregnancyWeeks: (document.getElementById('pregnancyWeeks')?.value || '').trim() ? `${document.getElementById('pregnancyWeeks').value.trim()} 週` : '無',
+          healthConditions: Array.from(document.querySelectorAll('input[name="healthConditions"]:checked')).map(el => el.value).join('、') || '無特殊病史',
+          allergyDetails: (document.getElementById('allergyDetails')?.value || '').trim() || '無過敏史',
+          medicationDetails: (document.getElementById('medicationDetails')?.value || '').trim() || '無常規用藥',
+          scentFavorites: Array.from(document.querySelectorAll('input[name="scent_fav"]:checked')).map(el => el.value).join('、') || '無特定偏好',
+          scentDislikes: (document.getElementById('scentDislikes')?.value || '').trim() || '無特殊排斥氣味',
+          consent: consentCheck.checked ? '已同意知情聲明' : '未同意'
+        };
+
+        try {
+          if (GOOGLE_SHEET_CONSULT_URL && !GOOGLE_SHEET_CONSULT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) {
+            await fetch(GOOGLE_SHEET_CONSULT_URL, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+              },
+              body: JSON.stringify(payload)
+            });
+            console.log("[Aromatherapy Survey] 資料已成功送達 Google Apps Script / Google Sheet");
+          } else {
+            console.log("[Aromatherapy Survey] 目前為展示/未串接模式，送出資料預覽：", payload);
+            await new Promise(resolve => setTimeout(resolve, 800));
+          }
+        } catch (error) {
+          console.warn("[Aromatherapy Survey] 傳送至 Google Sheet 時發生網路異常：", error);
+        } finally {
+          nextStepBtn.disabled = false;
+          prevStepBtn.disabled = false;
+          btnSpinner.classList.add('hidden');
+
+          // 填入摘要卡片
+          const sumName = document.getElementById('sumName');
+          const sumConcerns = document.getElementById('sumConcerns');
+          if (sumName) sumName.textContent = payload.clientName || '芳療個案貴賓';
+          if (sumConcerns) sumConcerns.textContent = payload.concerns;
+
+          // 切換至成功面板
+          ifaForm.classList.add('hidden');
+          modalFooterNav.classList.add('hidden');
+          successPanel.classList.remove('hidden');
+        }
+      }
+
+      // 快速填入測試資料
+      function fillTestData() {
+        clientName.value = '林宛萱';
+        const genderRadio = document.querySelector('input[name="gender"][value="female"]');
+        if (genderRadio) genderRadio.checked = true;
+        clientAge.value = '31-50';
+        clientPhone.value = '0912-345-678';
+        clientEmail.value = 'wanxuan.lin@example.com';
+
+        const lifeSedentary = document.getElementById('life_sedentary');
+        if (lifeSedentary) lifeSedentary.checked = true;
+        const lifeShift = document.getElementById('life_shift');
+        if (lifeShift) lifeShift.checked = true;
+
+        const cSleep = document.getElementById('c_sleep');
+        if (cSleep) cSleep.checked = true;
+        const cMuscle = document.getElementById('c_muscle');
+        if (cMuscle) cMuscle.checked = true;
+
+        const symptomDetail = document.getElementById('symptomDetail');
+        if (symptomDetail) {
+          symptomDetail.value = '最近因專案高壓工作，連續兩週入睡困難且半夜容易驚醒；每日下午在電腦前工作常感到後頸及雙肩深層緊繃僵硬，希望能透過天然植萃精油改善睡眠品質並舒緩肌肉不適。';
+        }
+
+        const pregNone = document.querySelector('input[name="pregnancyStatus"][value="none"]');
+        if (pregNone) {
+          pregNone.checked = true;
+          pregnancyWeeksWrap.classList.add('hidden');
+        }
+
+        const condHypo = document.querySelector('input[name="healthConditions"][value="低血壓"]');
+        if (condHypo) condHypo.checked = true;
+
+        const allergy = document.getElementById('allergyDetails');
+        if (allergy) allergy.value = '對堅果類基底油無過敏史，對特定人工合成香精曾有輕微泛紅敏感';
+
+        const med = document.getElementById('medicationDetails');
+        if (med) med.value = '無特殊慢性病常規用藥，日常僅補充綜合維他命與魚油';
+
+        const scentWoody = document.getElementById('scent_woody');
+        if (scentWoody) scentWoody.checked = true;
+        const scentFloral = document.getElementById('scent_floral');
+        if (scentFloral) scentFloral.checked = true;
+
+        const scentDis = document.getElementById('scentDislikes');
+        if (scentDis) scentDis.value = '排斥過度濃烈的人工化學香精，對純茶樹精油刺鼻味稍敏感';
+
+        consentCheck.checked = true;
+        clearAllErrors();
+      }
+
+      // 事件監聽綁定
+      if (openModalBtn) openModalBtn.addEventListener('click', openModal);
+      if (heroOpenModalBtn) heroOpenModalBtn.addEventListener('click', openModal);
+      if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+      if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeModal);
+
+      if (sectionQuickTestBtn) {
+        sectionQuickTestBtn.addEventListener('click', () => {
+          openModal();
+          fillTestData();
+        });
+      }
+
+      if (fillTestDataBtn) {
+        fillTestDataBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fillTestData();
+        });
+      }
+
+      // 點擊外部關閉
+      if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+          if (e.target === modalOverlay) closeModal();
+        });
+      }
+
+      // 按 ESC 鍵關閉
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('active-state')) {
+          closeModal();
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
